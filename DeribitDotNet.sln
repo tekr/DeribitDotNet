@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30516.212
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeribitDotNet", "DeribitDotNet\DeribitDotNet.csproj", "{6793D43C-C590-4468-A6E0-44D949E51B80}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeribitDotNet.UnitTests", "DeribitDotNet.UnitTests\DeribitDotNet.UnitTests.csproj", "{1A7BCBC5-5C66-4ECE-81A0-196427403528}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6793D43C-C590-4468-A6E0-44D949E51B80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6793D43C-C590-4468-A6E0-44D949E51B80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6793D43C-C590-4468-A6E0-44D949E51B80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6793D43C-C590-4468-A6E0-44D949E51B80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A7BCBC5-5C66-4ECE-81A0-196427403528}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A7BCBC5-5C66-4ECE-81A0-196427403528}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A7BCBC5-5C66-4ECE-81A0-196427403528}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A7BCBC5-5C66-4ECE-81A0-196427403528}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FC8736EB-8098-4002-A004-FECDB4260C10}
+	EndGlobalSection
+EndGlobal
