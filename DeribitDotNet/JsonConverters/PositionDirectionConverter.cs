@@ -15,7 +15,7 @@ namespace DeribitDotNet.JsonConverters
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serialiser)
         {
             var stringValue = reader.Value.ToString();
-            return stringValue == "zero" ? Direction.Buy : Enum.Parse<Direction>(stringValue, true);
+            return stringValue == "zero" ? Direction.Buy : Enum.Parse(typeof(Direction), stringValue, true);
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serialiser) => throw new NotImplementedException();

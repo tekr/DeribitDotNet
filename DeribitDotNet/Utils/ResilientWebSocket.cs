@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Net.WebSockets;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Serilog;
@@ -56,8 +58,17 @@ namespace DeribitDotNet.Utils
 
                 try
                 {
-                    // Will throw if buffer is too small
-                    var length = System.Text.Encoding.Default.GetBytes(message.AsSpan(), _writeBuffer);
+                    int length;
+
+                    unsafe
+                    {
+                        fixed (char* pMessage = message)
+                        fixed (byte* pBuffer = _writeBuffer)
+                        {
+                            // Will throw if buffer is too small
+                            length = Encoding.Default.GetBytes(pMessage, message.Length, pBuffer, 0);
+                        }
+                    }
 
                     if (errorCounter > 0)
                     {
@@ -220,8 +231,7 @@ namespace DeribitDotNet.Utils
                     {
                         if (result.EndOfMessage)
                         {
-                            var message = System.Text.Encoding.Default.GetString(new ReadOnlySpan<byte>(_readBuffer,
-                                0, offset + result.Count));
+                            var message = Encoding.Default.GetString(_readBuffer, 0, offset + result.Count);
 
                             if (Log.IsEnabled(LogEventLevel.Verbose))
                             {

@@ -139,7 +139,7 @@ namespace DeribitDotNet
             if (completedTask != taskCompletionSource.Task)
             {
                 taskCompletionSource.SetException(new TimeoutException("The operation timed out"));
-                _responseTypesByRequestId.Remove(requestHolder.Id, out _);
+                _responseTypesByRequestId.TryRemove(requestHolder.Id, out _);
             }
 
             if (request is SubscribeRequest subscriptionRequest && !_resubscribing)
@@ -330,7 +330,7 @@ namespace DeribitDotNet
                     {
                         try
                         {
-                            Log.Debug($"Resubscribing to {string.Join(',', subscription.Channels)}");
+                            Log.Debug($"Resubscribing to {string.Join(",", subscription.Channels)}");
                             await Send(subscription);
                         }
                         catch (Exception e)
