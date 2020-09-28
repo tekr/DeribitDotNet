@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net.WebSockets;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,7 +38,6 @@ namespace DeribitDotNet.Utils
         public async ValueTask Initialise()
         {
             if (_disposed) throw new ObjectDisposedException("ResilientWebSocket", "Object has been disposed");
-            Log.Debug("Calling Reconnect from Initialise");
             await Reconnect().ConfigureAwait(false);
         }
 
@@ -66,7 +64,7 @@ namespace DeribitDotNet.Utils
                         fixed (byte* pBuffer = _writeBuffer)
                         {
                             // Will throw if buffer is too small
-                            length = Encoding.Default.GetBytes(pMessage, message.Length, pBuffer, 0);
+                            length = Encoding.Default.GetBytes(pMessage, message.Length, pBuffer, _writeBuffer.Length);
                         }
                     }
 
@@ -275,8 +273,6 @@ namespace DeribitDotNet.Utils
             {
                 Log.Error(e, "Web socket error during receive");
             }
-
-            Log.Debug("Calling Reconnect from receive loop");
 
             await Reconnect().ConfigureAwait(false);
         }
