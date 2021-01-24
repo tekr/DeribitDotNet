@@ -93,7 +93,7 @@ namespace DeribitDotNet.Demo
 
                 Console.ReadLine();
             }
-
+            
             if (key == null)
             {
                 Console.WriteLine("Private API examples are not available as no API key was specified. Press <ENTER> to complete.");
@@ -101,10 +101,22 @@ namespace DeribitDotNet.Demo
 
                 return;
             }
+            
+            var response = (await deribitApi.Send(new PositionsRequest(DeribitCurrency.Btc))).Positions;
+
+            Console.WriteLine("Positions:\n" + string.Join("\'", response.Select(p => $" Instrument: {p.Instrument} Dir: {p.Direction} Size: {p.Size} Price: {p.AveragePrice}, {p.AveragePriceUsd}")));
 
             Console.WriteLine("Press <ENTER> to continue.");
+            Console.ReadLine();
 
-            // TODO Private API examples
+            await deribitApi.Reconnect();
+
+            response = (await deribitApi.Send(new PositionsRequest(DeribitCurrency.Btc))).Positions;
+
+            Console.WriteLine("Positions:\n" + string.Join("\'", response.Select(p => $" Instrument: {p.Instrument} Dir: {p.Direction} Size: {p.Size} Price: {p.AveragePrice}, {p.AveragePriceUsd}")));
+
+            Console.WriteLine("Press <ENTER> to continue.");
+            Console.ReadLine();
         }
     }
 }
