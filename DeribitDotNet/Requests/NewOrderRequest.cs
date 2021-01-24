@@ -50,7 +50,7 @@ namespace DeribitDotNet.Requests
         public double Quantity;
 
         [JsonProperty("type", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public OrderType OrderType;
+        public OrderType OrderType = OrderType.Limit;
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public double? Price;
@@ -62,7 +62,7 @@ namespace DeribitDotNet.Requests
         public TimeInForce TimeInForce = TimeInForce.GoodTillCancelled;
 
         [JsonProperty("max_show", NullValueHandling = NullValueHandling.Ignore)]
-        public int? ShowSize;
+        public double? ShowSize;
 
         [JsonProperty("post_only", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool PostOnly;

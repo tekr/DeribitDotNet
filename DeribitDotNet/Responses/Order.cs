@@ -49,7 +49,7 @@ namespace DeribitDotNet.Responses
         public DateTime LastUpdateTime;
 
         [JsonProperty("max_show")]
-        public int ShowSize;
+        public double ShowSize;
 
         [JsonProperty("order_id")]
         public string OrderId;
