@@ -90,7 +90,7 @@ namespace DeribitDotNet
                 if (MarketDataWatchdogEnabled)
                 {
                     Log.Error($"No message received from Deribit for {MarketDataWatchdogTimeout.TotalSeconds} seconds. Resetting");
-                    _ = _webSocket.Reset();
+                    Reconnect();
                 }
             };
         }
@@ -110,9 +110,10 @@ namespace DeribitDotNet
             }
         }
 
-        public void Reconnect()
+        public Task Reconnect()
         {
-            _ = _webSocket.Reset();
+            _token = null;
+            return _webSocket.Reset();
         }
 
         public async Task<TResponse> Send<TResponse>(Request<TResponse> request) where TResponse : Response, new()
@@ -172,7 +173,7 @@ namespace DeribitDotNet
                         _token = response.Result.AccessToken;
                         _tokenExpiryTime = response.ArrivalTime.AddSeconds(response.Result.ExpiresInSec);
 
-                        Log.Information($"Authentication token received. Expires {_tokenExpiryTime}");
+                        Log.Information($"Authentication token received. Expires {_tokenExpiryTime} ({response.Result.ExpiresInSec} sec)");
                         break;
                     }
 
@@ -344,7 +345,7 @@ namespace DeribitDotNet
                 catch (Exception ex)
                 {
                     Log.Error(ex, "Error resubscribing");
-                    _ = _webSocket.Reset();
+                    Reconnect();
                 }
                 finally
                 {
