@@ -83,7 +83,7 @@ namespace DeribitDotNet
 
             _webSocket.Connected += OnWebsocketConnected;
 
-            _webSocket.Closed += (_, _) =>
+            _webSocket.Closed += (s, e) =>
             {
                 _accessToken = null;
                 _resubscribeCancellationTokenSource.Cancel();
