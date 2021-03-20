@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using DeribitDotNet.Responses;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -22,7 +24,7 @@ namespace DeribitDotNet.Requests
 
     public class SubscribeRequest : Request<SubscribeInstrumentsResponse>
     {
-        public string[] Channels;
+        public readonly string[] Channels;
 
         public static SubscribeRequest OrderBook(bool batched = false, params string[] symbols) =>
             new SubscribeRequest("book", batched, true, symbols);
@@ -50,13 +52,19 @@ namespace DeribitDotNet.Requests
             DeribitCurrency? currency = null, bool batched = false) =>
             new SubscribeRequest("user.trades", instrumentKind, currency, batched);
 
+        public override bool Equals(object obj) =>
+            base.Equals(obj) && obj is SubscribeRequest other && Channels.SequenceEqual(other.Channels);
+
+        public override int GetHashCode() =>
+            base.GetHashCode() * 13 ^ ((IStructuralEquatable)Channels).GetHashCode(EqualityComparer<string>.Default);
+
         private SubscribeRequest(string eventType, bool batched, bool isPublic, params string[] symbols) : base("subscribe", isPublic) =>
             Channels = symbols.Select(s => $"{eventType}.{s}.{GetBatched(batched)}").ToArray();
 
         private SubscribeRequest(string eventType, InstrumentKind instrumentKind, DeribitCurrency? currency, bool batched) :
             base("subscribe", false) => Channels = new[]
             {$"{eventType}.{instrumentKind}.{(currency != null ? currency.ToString() : "any")}.{GetBatched(batched)}"};
-
+        
         private static string GetBatched(bool batched) => batched ? "100ms" : "raw";
     }
 }

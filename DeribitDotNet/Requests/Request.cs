@@ -22,5 +22,9 @@ namespace DeribitDotNet.Requests
             Method = method;
             IsPublic = isPublic;
         }
+
+        public override bool Equals(object obj) => obj is Request other && other.Method == Method && other.IsPublic == IsPublic;
+
+        public override int GetHashCode() => Method.GetHashCode() * 17 ^ IsPublic.GetHashCode();
     }
 }

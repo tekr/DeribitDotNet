@@ -26,7 +26,9 @@ namespace DeribitDotNet
 
         private static readonly TestRequest TestRequest = new TestRequest();
 
-        private readonly IList<SubscribeRequest> _activeSubscriptions = new List<SubscribeRequest>();
+        private readonly HashSet<SubscribeRequest> _activeSubscriptions = new HashSet<SubscribeRequest>();
+
+        private CancellationTokenSource _resubscribeCancellationTokenSource = new CancellationTokenSource();
 
         private readonly string _key;
         private readonly string _secret;
@@ -40,10 +42,9 @@ namespace DeribitDotNet
         private long _nextRequestId;
 
         private bool _initialised;
-        private bool _resubscribing;
         private bool _disposed;
 
-        private string _token;
+        private string _accessToken;
         private DateTime _tokenExpiryTime;
 
         public bool MarketDataWatchdogEnabled { get; set; } = true;
@@ -81,7 +82,13 @@ namespace DeribitDotNet
             Log.Debug($"Deribit API created with key {key}. Configured for {(testEnvironment ? "test" : "prod")} URL");
 
             _webSocket.Connected += OnWebsocketConnected;
-            _webSocket.Closed += (s, e) => _token = null;
+
+            _webSocket.Closed += (_, _) =>
+            {
+                _accessToken = null;
+                _resubscribeCancellationTokenSource.Cancel();
+            };
+
             _webSocket.MessageReceived += OnWebsocketMessage;
 
             _marketDataWatchdog = new Timer(MarketDataWatchdogTimeout.TotalMilliseconds);
@@ -110,10 +117,7 @@ namespace DeribitDotNet
             }
         }
 
-        public void Reconnect()
-        {
-            _ = _webSocket.Reset();
-        }
+        public Task Reconnect() => _webSocket.Reset();
 
         public async Task<TResponse> Send<TResponse>(Request<TResponse> request) where TResponse : Response, new()
         {
@@ -126,7 +130,7 @@ namespace DeribitDotNet
                 await EnsureAuthenticated();
             }
 
-            var requestHolder = new RequestHolder<Request<TResponse>, TResponse>(Interlocked.Increment(ref _nextRequestId), request, _token);
+            var requestHolder = new RequestHolder<Request<TResponse>, TResponse>(Interlocked.Increment(ref _nextRequestId), request, _accessToken);
             var message = SerialisationHelper.Serialise(requestHolder);
 
             var taskCompletionSource = new TaskCompletionSource<TResponse>();
@@ -142,11 +146,14 @@ namespace DeribitDotNet
                 _responseTypesByRequestId.TryRemove(requestHolder.Id, out _);
             }
 
-            if (request is SubscribeRequest subscriptionRequest && !_resubscribing)
+            if (request is SubscribeRequest subscriptionRequest)
             {
                 _marketDataWatchdog.Start();
-                Log.Information($"Recording subscription for {string.Join(",", subscriptionRequest.Channels)}");
-                _activeSubscriptions.Add(subscriptionRequest);
+
+                if (_activeSubscriptions.Add(subscriptionRequest))
+                {
+                    Log.Information($"Recording subscription for {string.Join(",", subscriptionRequest.Channels)}");
+                }
             }
 
             return await taskCompletionSource.Task;
@@ -154,7 +161,7 @@ namespace DeribitDotNet
 
         private async Task EnsureAuthenticated()
         {
-            if (_token == null || (_tokenExpiryTime - DateTime.UtcNow).TotalSeconds < 30)
+            if (_accessToken == null || (_tokenExpiryTime - DateTime.UtcNow).TotalSeconds < 30)
             {
                 while (true)
                 {
@@ -169,7 +176,7 @@ namespace DeribitDotNet
                     }
                     else
                     {
-                        _token = response.Result.AccessToken;
+                        _accessToken = response.Result.AccessToken;
                         _tokenExpiryTime = response.ArrivalTime.AddSeconds(response.Result.ExpiresInSec);
 
                         Log.Information($"Authentication token received. Expires {_tokenExpiryTime}");
@@ -319,14 +326,17 @@ namespace DeribitDotNet
 
         private async void OnWebsocketConnected(object sender, EventArgs eventArgs)
         {
+            _accessToken = null;
+
+            var cts = _resubscribeCancellationTokenSource = new CancellationTokenSource();
+           
             if (_activeSubscriptions.Count > 0 && !_disposed)
             {
                 Log.Information($"Resubscribing to {_activeSubscriptions.Count} active subscription(s)");
 
                 try
                 {
-                    _resubscribing = true;
-                    foreach (var subscription in _activeSubscriptions.ToList())
+                    foreach (var subscription in _activeSubscriptions.ToList().TakeWhile(_ => !cts.Token.IsCancellationRequested))
                     {
                         try
                         {
@@ -344,11 +354,9 @@ namespace DeribitDotNet
                 catch (Exception ex)
                 {
                     Log.Error(ex, "Error resubscribing");
-                    _ = _webSocket.Reset();
-                }
-                finally
-                {
-                    _resubscribing = false;
+
+                    // No need to await here
+                    Reconnect();
                 }
             }
 
