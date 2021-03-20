@@ -356,7 +356,7 @@ namespace DeribitDotNet
                     Log.Error(ex, "Error resubscribing");
 
                     // No need to await here
-                    Reconnect();
+                    _ = Reconnect();
                 }
             }
 
