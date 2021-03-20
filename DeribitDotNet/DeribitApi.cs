@@ -97,7 +97,7 @@ namespace DeribitDotNet
                 if (MarketDataWatchdogEnabled)
                 {
                     Log.Error($"No message received from Deribit for {MarketDataWatchdogTimeout.TotalSeconds} seconds. Resetting");
-                    _ = _webSocket.Reset();
+                    Reconnect();
                 }
             };
         }
@@ -179,7 +179,7 @@ namespace DeribitDotNet
                         _accessToken = response.Result.AccessToken;
                         _tokenExpiryTime = response.ArrivalTime.AddSeconds(response.Result.ExpiresInSec);
 
-                        Log.Information($"Authentication token received. Expires {_tokenExpiryTime}");
+                        Log.Information($"Authentication token received. Expires {_tokenExpiryTime} ({response.Result.ExpiresInSec} sec)");
                         break;
                     }
 

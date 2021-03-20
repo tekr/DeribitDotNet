@@ -54,7 +54,7 @@ namespace DeribitDotNet.Responses
         public double MinSellPrice;
 
         [JsonProperty("open_interest")]
-        public int OpenInterest;
+        public long OpenInterest;
 
         [JsonProperty("settlement_price")]
         public double? SettlementPrice;
